@@ -1,0 +1,318 @@
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h> 
+#include<windows.h>
+#define max 3
+struct atm{
+	int zhanghu;
+	char mima[10];
+	char name[20];
+	double moneny;
+}yonghu[max];
+int i;
+FILE *fp,*fp1;     			//全局变量 
+atm jiequ(char *ch){ //在数据库中截取数据 
+	atm gd;
+	char *p; 
+	p=strtok(ch,",");//截取数据并以字符 形式
+	gd.zhanghu=atoi(p);
+	p=strtok(NULL,","); 
+	strcpy(gd.mima,p);
+	p=strtok(NULL,",");	
+	gd.moneny=atof(p);
+	p=strtok(NULL,",");
+	strcpy(gd.name,p);
+return gd;	
+}
+void welcom(){									//欢迎
+	printf("--------欢迎，很高兴为你服务------------\n");
+}
+int denglu(int f_zhanghu){						//登录 
+	int j,jilu;
+	char bidui[10];
+	for(i=0;i<max;i++){
+		if(f_zhanghu==yonghu[i].zhanghu){//对比账户是否存在 
+			for(j=0;j<=3;j++){
+				printf("输入密码\n");
+				scanf("%s",bidui);
+				if(strcmp(yonghu[i].mima,bidui)==0){//验证密码 
+					printf("登录成功\n");
+					jilu=1;
+					break;
+				}
+				else{
+					if(j==3){
+						printf("账户被冻结");
+						break;
+					}
+					printf("密码错误，请重新输入：\n");
+					
+				}
+			}
+			break;
+		}
+	}
+	if(i==max){
+		printf("未能找到账户");
+		jilu=0; 
+	}
+	return jilu;
+} 
+void caidan(){                      //菜单
+	printf("\n取款请按1;\n修改密码请按2;\n存钱请按3;\n查询账号请按4;\n退出请按5;\n转账请按6;\n查看流水请按7;\n");
+}
+void xgmm(){                      //修改密码
+	char ch[10],ch1[10];
+	int k=0;
+	while(1){
+		printf("输入密码");
+		scanf("%s",ch1);
+		if(strcmp(yonghu[i].mima,ch1)==0){
+			printf("输入修改的密码");
+			scanf("%s",ch);
+			for(int n=0;n<10;n++){
+				yonghu[i].mima[n]=ch[n];	
+			}
+			break;	
+		}
+		else{
+			k++;
+			if(k>=3){
+				printf("密码错误过多请，稍后再试"); 
+				break;
+			}
+			printf("密码错误，重新输入");
+		}
+	}
+} 
+double cunqian(){               //存钱 
+	int n,zz;
+	double cunchu,ssf=0.01;
+	while(1){
+	printf("输入金额：");
+	scanf("%lf",&cunchu);
+	zz=cunchu*ssf;
+	cunchu=cunchu-zz;
+	yonghu[i].moneny+=cunchu;
+	printf("余额为：");
+	printf("%lf\n",yonghu[i].moneny);
+	printf("继续存款请按1，结束请按0\n");
+	scanf("%d",&n);
+	if(n==0){
+		break;
+	}
+}
+	 return yonghu[i].moneny;
+}
+void chaxun(){                      //查询 
+
+	printf("余额为：%lf\n",yonghu[i].moneny);
+}
+double quqian(){                    //取钱 
+	int n,zz;
+	double quchu,ssf=0.01;
+	while(1){
+	printf("输入金额：");
+	scanf("%lf",&quchu);
+	zz=quchu*ssf;
+	quchu=quchu+zz;
+	if(quchu<=yonghu[i].moneny){//比较取出金额与剩余金额 
+		yonghu[i].moneny-=quchu;
+	}
+	else{
+		printf("余额不足"); 
+ 		break;
+	}
+	printf("余额为：");
+	printf("%lf\n",yonghu[i].moneny);
+	printf("继续取款请按1，结束请按0\n");
+	scanf("%d",&n);
+	if(n==0){
+		break;
+	}
+}
+	 return yonghu[i].moneny;
+}
+void zhuanliushui(int a,int b,double n){//转账时录入两人的卡号和变化数据。即转账时的流水 
+			fp1=fopen("kuangrui1.txt","a");//a 操作是写入，但不覆盖 
+					if(fp1==NULL){
+						printf("NOt");
+						exit (0);
+					}
+			fprintf(fp1,"%d:",yonghu[a].zhanghu);
+			fprintf(fp1,"-%lf\n",n);
+			fprintf(fp1,"%d:",yonghu[b].zhanghu);
+			fprintf(fp1,"+%lf\n",n);
+			fclose(fp1);	
+		}
+void zhuanzhang(){
+int zhanghu;
+double zzmoney,ssf,zz;//ssf为手续费 ,zz为中间变量 
+int js=0;
+for (int k=0;k<3;k++){
+	printf("转到卡号为：");
+	scanf("%d",&zhanghu);
+		for (int j=0;j<=max;j++){
+			if(zhanghu==yonghu[j].zhanghu){ //zhanghu是结构体里面的账号 
+				printf("输入转账金额：");
+				scanf("%lf",&zzmoney);//zzmoney是新定义的变量
+				if(zzmoney>=100&&zzmoney<=1000) {
+				ssf=0.01;
+				zz=zzmoney*ssf;
+				zzmoney=zzmoney-zz; 
+				 }else if(zzmoney>1000)
+				 {
+				 	ssf=0.005;
+				 	zz=zzmoney*ssf;
+				 	zzmoney=zzmoney-zz;
+				 }
+				if(zzmoney<=yonghu[i].moneny){
+					if(zzmoney>=100&&zzmoney<=1000) 
+					yonghu[i].moneny-=zzmoney;
+					yonghu[j].moneny+=zzmoney;
+					printf("转账成功\n");
+					zhuanliushui(i,j,zzmoney);	 //引用卡号和变化金额 调用转流水的这个函数 
+				}
+				if(zzmoney>yonghu[i].moneny){
+					printf("余额不足，已结束"); 
+				}
+				js=1;//用一一个数来判断余额是否足够，如果不足则跳出这个循环		
+			}
+		}
+		if(js==1){
+			break;
+		}
+		if(k==3){
+			printf("未能找到账户");
+			break;
+		}
+	}
+}
+void danliushui(double je,double j){//单个账户的流水  je是变化前的数据，就是变化后的数据   
+	double jl[max];      //用max明确是那个用户;
+	fp1=fopen("kuangrui1.txt","a");//    a 操作是写入，但不覆盖 
+		if(fp1==NULL){
+			printf("NOt");
+			exit (0);
+		}
+		fprintf(fp1,"%d:",yonghu[i].zhanghu);//通过卡号来确定是谁的流水	 
+		if(je>j){
+			jl[i]=je-j;
+			fprintf(fp1,"-");
+		}
+		if(je<j){
+			jl[i]=j-je;
+			fprintf(fp1,"+");
+		}
+		fprintf(fp1,"%lf\n",jl[i]);	
+	fclose(fp1);	
+}
+void chuanliushui(){
+	char shuju[100];
+	fp1=fopen("kuangrui1.txt","r");//    a 操作是写入，但不覆盖 
+			if(fp1==NULL){
+				printf("NOt");
+				exit (0);
+			}
+	struct neirong{
+		int kahao;
+		char bianhua[20];
+	}cx;
+	char *p; 
+	while(fgets(shuju,100,fp1)!=NULL){         //将截取的数据通过卡号来找到同一账户的流水 
+			p=strtok(shuju,":");//截取数据并以字符 形式
+			cx.kahao=atoi(p);
+			p=strtok(NULL,":");
+			strcpy(cx.bianhua,p);
+		if(cx.kahao==yonghu[i].zhanghu){//比对截取的卡号，通过卡号来找到流水
+			printf("%s",cx.bianhua);
+		} 
+	}					//每一单独一排，要单独截取一次，直到NULL 
+	fclose(fp1); 
+}
+void sjgx(){              //数据更新 
+		fp=fopen("kuangrui2.txt","w");
+		if(fp==NULL){
+			printf("NOt");
+			exit (0);
+		}			
+		for(int i=0;i<max;i++){
+			fprintf(fp,"%d %s %s %lf \n",yonghu[i].zhanghu,yonghu[i].mima,yonghu[i].name,yonghu[i].moneny);
+		}	fclose(fp); 
+}
+int main(){           //主函数 
+	fp=fopen("kuangrui.txt","r");
+	if(fp==NULL){
+		printf("NOt");
+		exit (0);
+	}
+	int jishu=0;
+	char huanchong[100];
+	int k=0;
+	while(fgets(huanchong,100,fp)!=NULL){
+		if(jishu>max){
+						break;}	
+		yonghu[k]=jiequ(huanchong);//导出用户数据 
+		k++;
+		jishu++;		
+	}
+	printf("数据准备完成\n");
+	fclose(fp);
+	welcom();
+	int s_kahao,m,n;
+	double mx[max],a; //a用于记录变化化后的数据                
+	while(1){
+		printf("输入卡号:");	
+		scanf("%d",&s_kahao);
+		if(denglu(s_kahao)==1){
+			while(1){
+				for (int j=0;j<max;j++){
+					mx[j]=yonghu[j].moneny;   //纪录每个账户金额变动前的数据 
+				}				
+				caidan();
+				printf("选择你的服务\n");
+				scanf("       %d",&m);
+					switch (m) {
+					case 1://取款 
+						a=quqian();
+						danliushui(mx[i],a);
+						system("cls");//登陆的用户的金额数据  
+						break;	
+					case 2://修改密码 
+						xgmm();
+						system("cls");
+							break;
+					case 3://存钱 
+						a=cunqian();
+						danliushui(mx[i],a);
+						system("cls");//  登陆的用户的金额数据 
+						break;
+					case 4://查询账户 
+						chaxun();
+						system("cls");
+						break;
+					case 5://退出 
+						break;
+					case 6://转账
+						zhuanzhang();
+						system("cls");
+						break;
+					case 7://流水
+						chuanliushui();	
+						system("cls");   
+						break;						
+				}
+				if(m==5){
+					break;
+				}
+				sjgx();
+			} 
+		}
+		printf("切换账户请按  1   关闭系统请按   0 \n你的选择是："); 
+		scanf("%d",&n);
+		if(n==0){
+			break;
+		}
+	}
+return 0;
+} 
